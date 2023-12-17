@@ -17,6 +17,14 @@ if [ $# -eq 0 ]; then
 fi
 
 case "$1" in
+  "add")
+    if [ $# -ne 2 ]; then
+      echo "Usage: dailies add <tag>"
+      exit 1
+    fi
+
+    echo "$2" >> "$tags"
+    ;;
   "mark")
     choice="$("$0" remaining | fzf)"
     status="$2"
