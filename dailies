@@ -31,6 +31,10 @@ case "$1" in
     date="$(date +%Y-%m-%d)"
     printf "%s\n" "$date	$status	$choice" >> "$log"
     ;;
+  "today")
+    date="$(date +%Y-%m-%d)"
+    grep "$date" "$log"
+    ;;
   "remaining")
     date="$(date +%Y-%m-%d)"
     while read -r line; do
@@ -40,11 +44,21 @@ case "$1" in
       fi
     done < "$tags"
     ;;
+  "count")
+    "$0" remaining | wc -l
+    ;;
+  "edit")
+    $EDITOR "$tags"
+    ;;
   "help")
     echo "Usage: dailies <command>"
     echo "Commands:"
+    echo "  add <tag> - add a tag to the list of dailies"
     echo "  mark <status> - mark a daily with a status"
+    echo "  today - show today's dailies"
     echo "  remaining - show remaining dailies"
+    echo "  count - show the number of remaining dailies"
+    echo "  edit - edit the list of tags"
     echo "  help - show this help message"
     ;;
   *)
