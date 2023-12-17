@@ -11,10 +11,30 @@ if [ ! -f "$log" ]; then
   touch "$log"
 fi
 
+if [ $# -eq 0 ]; then
+  "$0" mark
+  exit 0
+fi
+
 case "$1" in
+  "mark")
+    choice="$("$0" remaining | fzf)"
+    status="$2"
+
+    if [ $# -ne 2 ]; then
+      status=$(echo -e "done\nskipped" | fzf)
+      if [ -z "$status" ]; then
+        status="done"
+      fi
+    fi
+
+    date="$(date +%Y-%m-%d)"
+    printf "%s\n" "$date	$status	$choice" >> "$log"
+    ;;
   "help")
     echo "Usage: dailies <command>"
     echo "Commands:"
+    echo "  mark <status> - mark a daily with a status"
     echo "  help - show this help message"
     ;;
   *)
