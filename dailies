@@ -1,0 +1,23 @@
+#!/bin/bash
+
+tags="$HOME/.dailies.tags"
+log="$HOME/.dailies.log"
+
+if [ ! -f "$tags" ]; then
+  touch "$tags"
+fi
+
+if [ ! -f "$log" ]; then
+  touch "$log"
+fi
+
+case "$1" in
+  "help")
+    echo "Usage: dailies <command>"
+    echo "Commands:"
+    echo "  help - show this help message"
+    ;;
+  *)
+    echo "Invalid option"
+    ;;
+esac
