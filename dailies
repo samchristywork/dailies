@@ -29,6 +29,10 @@ case "$1" in
     choice="$("$0" remaining | fzf)"
     status="$2"
 
+    if [ -z "$choice" ]; then
+      exit 0
+    fi
+
     if [ $# -ne 2 ]; then
       status=$(echo -e "done\nskipped" | fzf)
       if [ -z "$status" ]; then
@@ -38,6 +42,7 @@ case "$1" in
 
     date="$(date +%Y-%m-%d)"
     printf "%s\n" "$date	$status	$choice" >> "$log"
+    "$0" today
     ;;
   "today")
     date="$(date +%Y-%m-%d)"
