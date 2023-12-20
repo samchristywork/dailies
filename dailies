@@ -66,6 +66,29 @@ case "$1" in
     startEpoch="$(date -d "$startDate" +%s)"
     currentEpoch="$(date +%s)"
 
+    for ((j = 1; j <= 4; j++)); do
+      lastNumber=""
+      for ((i = startEpoch; i <= currentEpoch; i += 86400)); do
+        date="$(date -d "@$i" +%m-%d | tr -d '-')"
+        number="$(echo "$date" | cut -c$j)"
+
+        date="$(date -d "@$i" +%Y-%m-%d)"
+        currentDate="$(date +%Y-%m-%d)"
+        if [ "$date" = "$currentDate" ]; then
+          printf " "
+        fi
+
+        if [ "$number" != "$lastNumber" ]; then
+          printf "%s" "$number"
+        else
+          printf " "
+        fi
+
+        lastNumber="$number"
+      done
+      echo
+    done
+
     green="$(tput setaf 2)"
     yellow="$(tput setaf 3)"
     red="$(tput setaf 1)"
