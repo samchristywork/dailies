@@ -50,12 +50,12 @@ case "$1" in
     ;;
   "remaining")
     date="$(date +%Y-%m-%d)"
-    while read -r line; do
+    sort "$tags" | while read -r line; do
       isinlog="$(grep "$date	.\+	$line" "$log")"
       if [ -z "$isinlog" ]; then
         echo "$line"
       fi
-    done < "$tags"
+    done
     ;;
   "count")
     "$0" remaining | wc -l
@@ -94,7 +94,7 @@ case "$1" in
     red="$(tput setaf 1)"
     reset="$(tput sgr0)"
 
-    while read -r line; do
+    sort "$tags" | while read -r line; do
       for ((i = startEpoch; i <= currentEpoch; i += 86400)); do
         date="$(date -d "@$i" +%Y-%m-%d)"
         currentDate="$(date +%Y-%m-%d)"
@@ -115,7 +115,7 @@ case "$1" in
         fi
       done
       printf " %s\n" "$line"
-    done < "$tags"
+    done
     ;;
   "show")
     cat "$log"
