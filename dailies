@@ -34,14 +34,18 @@ case "$1" in
       read -r -n 1 -p "$line: " choice
 
       if [ "$choice" = "w" ]; then
+        echo
         continue
       elif [ "$choice" = "s" ]; then
         status="skipped"
+        echo
       elif [ "$choice" = "d" ]; then
         status="done"
+        echo
       elif [ "$choice" = "q" ]; then
         exit 0
       else
+        echo
         echo "Invalid option"
         continue
       fi
