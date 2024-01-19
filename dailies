@@ -25,6 +25,26 @@ case "$1" in
 
     echo "$2" >> "$tags"
     ;;
+  "interactive")
+    "$0" remaining > /tmp/remaining.txt
+
+    while read -r line <&3; do
+      read -r -n 1 -p "$line: " choice
+
+      if [ "$choice" = "w" ]; then
+        continue
+      elif [ "$choice" = "s" ]; then
+        status="skipped"
+      elif [ "$choice" = "d" ]; then
+        status="done"
+      elif [ "$choice" = "q" ]; then
+        exit 0
+      fi
+
+      date="$(date +%Y-%m-%d)"
+      printf "%s\n" "$date	$status	$line" >> "$log"
+    done 3< "/tmp/remaining.txt"
+    ;;
   "mark")
     choice="$("$0" remaining | fzf)"
     status="$2"
@@ -127,6 +147,7 @@ case "$1" in
     echo "Usage: dailies <command>"
     echo "Commands:"
     echo "  add <tag> - add a tag to the list of dailies"
+    echo "  interactive - mark dailies interactively"
     echo "  mark <status> - mark a daily with a status"
     echo "  today - show today's dailies"
     echo "  remaining - show remaining dailies"
