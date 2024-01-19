@@ -150,7 +150,7 @@ case "$1" in
     cat "$log"
     ;;
   "edit")
-    $EDITOR "$tags"
+    $EDITOR "$tags" "$log"
     ;;
   "help")
     echo "Usage: dailies <command>"
