@@ -41,6 +41,9 @@ case "$1" in
         status="done"
       elif [ "$choice" = "q" ]; then
         exit 0
+      else
+        echo "Invalid option"
+        continue
       fi
 
       date="$(date +%Y-%m-%d)"
