@@ -28,6 +28,8 @@ case "$1" in
   "interactive")
     "$0" remaining > /tmp/remaining.txt
 
+    echo "(w)ill do, (s)kipped, (d)one, (q)uit"
+
     while read -r line <&3; do
       read -r -n 1 -p "$line: " choice
 
