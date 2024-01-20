@@ -12,6 +12,10 @@ if [ ! -f "$log" ]; then
   touch "$log"
 fi
 
+if [ ! -f "$goals" ]; then
+  touch "$goals"
+fi
+
 if [ $# -eq 0 ]; then
   "$0" mark
   exit 0
@@ -75,8 +79,23 @@ case "$1" in
     "$0" today
     ;;
   "goal")
+    if [ $# -ne 3 ]; then
+      echo "Usage: dailies goal <tag> <goal>"
+      exit 1
+    fi
+
     tag="$2"
     goal="$3"
+
+    if [ -z "$tag" ]; then
+      echo "Invalid tag"
+      exit 1
+    fi
+
+    if [ -z "$goal" ]; then
+      echo "Invalid goal"
+      exit 1
+    fi
 
     if [ -n "$(grep "$tag" "$goals")" ]; then
       sed -i "s/^$tag	.\+/$tag	$goal/" "$goals"
