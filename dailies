@@ -196,7 +196,7 @@ case "$1" in
     column -t -s $'\t' "$log"
     ;;
   "edit")
-    $EDITOR "$tags" "$log"
+    $EDITOR "$tags" "$log" "$goals"
     ;;
   "help")
     echo "Usage: dailies <command>"
@@ -207,6 +207,7 @@ case "$1" in
     echo "  goal <tag> <goal> - set a goal for a daily"
     echo "  today - show today's dailies"
     echo "  remaining - show remaining dailies"
+    echo "  behind - show dailies that are behind"
     echo "  count - show the number of remaining dailies"
     echo "  summary - show a summary of dailies"
     echo "  show - show the log"
