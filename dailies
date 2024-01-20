@@ -86,7 +86,7 @@ case "$1" in
     ;;
   "today")
     date="$(date +%Y-%m-%d)"
-    grep "$date" "$log"
+    grep "$date" "$log" | column -t -s $'\t'
     ;;
   "remaining")
     date="$(date +%Y-%m-%d)"
@@ -158,7 +158,7 @@ case "$1" in
     done
     ;;
   "show")
-    cat "$log"
+    column -t -s $'\t' "$log"
     ;;
   "edit")
     $EDITOR "$tags" "$log"
