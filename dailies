@@ -97,6 +97,22 @@ case "$1" in
       fi
     done
     ;;
+  "behind")
+    sort "$goals" | while read -r line; do
+      daily="$(echo "$line" | cut -f1)"
+      days="$(echo "$line" | cut -f2)"
+
+      last_done="$(grep "done	$daily" "$log" | tail -n 1 | cut -f1)"
+      last_done_epoch="$(date -d "$last_done" +%s)"
+      current_epoch="$(date +%s)"
+      seconds_ago="$((current_epoch - last_done_epoch))"
+      days_ago="$((seconds_ago / 86400))"
+
+      if [ "$days_ago" -gt "$days" ]; then
+        echo "$daily behind by $((days_ago - days)) days"
+      fi
+    done
+    ;;
   "count")
     "$0" remaining | wc -l
     ;;
