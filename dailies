@@ -2,6 +2,7 @@
 
 tags="$HOME/.dailies.tags"
 log="$HOME/.dailies.log"
+goals="$HOME/.dailies.goals"
 
 if [ ! -f "$tags" ]; then
   touch "$tags"
@@ -72,6 +73,16 @@ case "$1" in
     date="$(date +%Y-%m-%d)"
     printf "%s\n" "$date	$status	$choice" >> "$log"
     "$0" today
+    ;;
+  "goal")
+    tag="$2"
+    goal="$3"
+
+    if [ -n "$(grep "$tag" "$goals")" ]; then
+      sed -i "s/^$tag	.\+/$tag	$goal/" "$goals"
+    else
+      echo "$tag	$goal" >> "$goals"
+    fi
     ;;
   "today")
     date="$(date +%Y-%m-%d)"
@@ -158,6 +169,7 @@ case "$1" in
     echo "  add <tag> - add a tag to the list of dailies"
     echo "  interactive - mark dailies interactively"
     echo "  mark <status> - mark a daily with a status"
+    echo "  goal <tag> <goal> - set a goal for a daily"
     echo "  today - show today's dailies"
     echo "  remaining - show remaining dailies"
     echo "  count - show the number of remaining dailies"
