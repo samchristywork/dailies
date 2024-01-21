@@ -168,7 +168,11 @@ case "$1" in
         reset = "\033[0m"
 
         for (tag in tags) {
-          printf "%s\t", tag
+          sortedTags[tag] = 1
+        }
+        asorti(sortedTags)
+        for (i in sortedTags) {
+          tag = sortedTags[i]
           for (epoch = '"$startEpoch"'; epoch <= '"$currentEpoch"'; epoch += 86400) {
             if (data[epoch][tag] == "done") {
               printf "%s%s%s", green, "✓", reset
@@ -178,13 +182,11 @@ case "$1" in
               printf "%s%s%s", yellow, ".", reset
             }
           }
+          printf "  "
+          printf "%s", tag
           printf "\n"
         }
-      }
-    ' "$log" | sort | awk -F'\t' '
-      {
-        printf "%s\t%s\n", $2, $1
-      }'
+      }' "$log"
 
     awk '
     END {
