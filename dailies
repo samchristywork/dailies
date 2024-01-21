@@ -182,11 +182,19 @@ case "$1" in
               printf "%s%s%s", yellow, ".", reset
             }
           }
-          printf "  "
+          printf "\t"
           printf "%s", tag
           printf "\n"
         }
-      }' "$log"
+      }' "$log" | while read -r line; do
+        tag="$(echo "$line" | cut -f2)"
+        marks="$(echo "$line" | cut -f1)"
+        grep -q "^$tag	" "$goals" && \
+          goal="$(grep "^$tag	" "$goals" | cut -f2)" || \
+          goal=""
+
+        echo -e "$marks\t$goal\t$tag"
+      done | column -t -s $'\t'
 
     awk '
     END {
