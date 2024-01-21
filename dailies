@@ -141,56 +141,60 @@ case "$1" in
     startEpoch="$(date -d "$startDate" +%s)"
     currentEpoch="$(date +%s)"
 
-    for ((j = 1; j <= 4; j++)); do
-      lastNumber=""
-      for ((i = startEpoch; i <= currentEpoch; i += 86400)); do
-        date="$(date -d "@$i" +%m-%d | tr -d '-')"
-        number="$(echo "$date" | cut -c$j)"
+    awk '
+    END {
+      for (epoch = '"$startEpoch"'; epoch <= '"$currentEpoch"'; epoch += 86400) {
+        dayOfMonth = strftime("%d", epoch)
+        lastDigit = substr(dayOfMonth, length(dayOfMonth), 1)
+        printf "%s", lastDigit
+      }
+      printf "\n"
+    }' < /dev/null
 
-        date="$(date -d "@$i" +%Y-%m-%d)"
-        currentDate="$(date +%Y-%m-%d)"
-        if [ "$date" = "$currentDate" ]; then
-          printf " "
-        fi
+    awk -F'\t' '
+      {
+        date = $1
+        epoch = mktime(gensub(/-/, " ", "g", date) " 00 00 00")
+        status = $2
+        tag = $3
 
-        if [ "$number" != "$lastNumber" ]; then
-          printf "%s" "$number"
-        else
-          printf " "
-        fi
+        data[epoch][tag] = status
+        tags[tag] = 1
+      }
+      END {
+        green = "\033[32m"
+        yellow = "\033[33m"
+        red = "\033[31m"
+        reset = "\033[0m"
 
-        lastNumber="$number"
-      done
-      echo
-    done
+        for (tag in tags) {
+          printf "%s\t", tag
+          for (epoch = '"$startEpoch"'; epoch <= '"$currentEpoch"'; epoch += 86400) {
+            if (data[epoch][tag] == "done") {
+              printf "%s%s%s", green, "✓", reset
+            } else if (data[epoch][tag] == "skipped") {
+              printf "%s%s%s", red, "✗", reset
+            } else {
+              printf "%s%s%s", yellow, ".", reset
+            }
+          }
+          printf "\n"
+        }
+      }
+    ' "$log" | sort | awk -F'\t' '
+      {
+        printf "%s\t%s\n", $2, $1
+      }'
 
-    green="$(tput setaf 2)"
-    yellow="$(tput setaf 3)"
-    red="$(tput setaf 1)"
-    reset="$(tput sgr0)"
-
-    sort "$tags" | while read -r line; do
-      for ((i = startEpoch; i <= currentEpoch; i += 86400)); do
-        date="$(date -d "@$i" +%Y-%m-%d)"
-        currentDate="$(date +%Y-%m-%d)"
-
-        isdone="$(grep "$date	done	$line" "$log")"
-        isskipped="$(grep "$date	skipped	$line" "$log")"
-
-        if [ "$date" = "$currentDate" ]; then
-          printf " "
-        fi
-
-        if [ -n "$isdone" ]; then
-          printf "%s" "${green}✓${reset}"
-        elif [ -n "$isskipped" ]; then
-          printf "%s" "${red}✗${reset}"
-        else
-          printf "%s" "${yellow}.${reset}"
-        fi
-      done
-      printf " %s\n" "$line"
-    done
+    awk '
+    END {
+      for (epoch = '"$startEpoch"'; epoch <= '"$currentEpoch"'; epoch += 86400) {
+        dayOfMonth = strftime("%d", epoch)
+        lastDigit = substr(dayOfMonth, length(dayOfMonth), 1)
+        printf "%s", lastDigit
+      }
+      printf "\n"
+    }' < /dev/null
     ;;
   "show")
     column -t -s $'\t' "$log"
