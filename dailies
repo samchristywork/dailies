@@ -127,8 +127,10 @@ case "$1" in
       seconds_ago="$((current_epoch - last_done_epoch))"
       days_ago="$((seconds_ago / 86400))"
 
-      if [ "$days_ago" -gt "$days" ]; then
-        echo "$daily behind by $((days_ago - days)) days"
+      if [ "$days_ago" -ge "$days" ]; then
+        echo "$daily	behind $((days_ago - days)) days"
+      elif [ -z "$last_done" ]; then
+        echo "$daily	never done"
       fi
     done
     ;;
