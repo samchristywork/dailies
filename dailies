@@ -175,27 +175,44 @@ case "$1" in
         asorti(sortedTags)
         for (i in sortedTags) {
           tag = sortedTags[i]
+          daysSinceFailed = 0
           for (epoch = '"$startEpoch"'; epoch <= '"$currentEpoch"'; epoch += 86400) {
             if (data[epoch][tag] == "done") {
               printf "%s%s%s", green, "✓", reset
+              daysSinceFailed = 0
             } else if (data[epoch][tag] == "skipped") {
               printf "%s%s%s", red, "✗", reset
+              daysSinceFailed += 1
             } else {
-              printf "%s%s%s", yellow, ".", reset
+              printf "%s%s%s", yellow, "—", reset
+              daysSinceFailed += 1
             }
           }
+          printf "\t"
+          printf "%s", daysSinceFailed
           printf "\t"
           printf "%s", tag
           printf "\n"
         }
       }' "$log" | while read -r line; do
-        tag="$(echo "$line" | cut -f2)"
         marks="$(echo "$line" | cut -f1)"
+        daysSinceFailed="$(echo "$line" | cut -f2)"
+        tag="$(echo "$line" | cut -f3)"
         grep -q "^$tag	" "$goals" && \
           goal="$(grep "^$tag	" "$goals" | cut -f2)" || \
           goal=""
 
-        echo -e "$marks\t$goal\t$tag"
+        green="\033[32m"
+        red="\033[31m"
+        reset="\033[0m"
+        if [ -z "$goal" ]; then
+          printf "%s\t%s\t%s\n" "$marks" "$goal" "$tag"
+        elif [ "$daysSinceFailed" -lt "$goal" ]; then
+          printf "%s\t${green}%s${reset}\t%s\n" "$marks" "$goal" "$tag"
+        else
+          printf "%s\t${red}%s${reset}\t%s\n" "$marks" "$goal" "$tag"
+        fi
+
       done | column -t -s $'\t'
 
     awk '
