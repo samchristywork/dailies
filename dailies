@@ -97,7 +97,7 @@ case "$1" in
       exit 1
     fi
 
-    if [ -n "$(grep "$tag" "$goals")" ]; then
+    if [ -n "$(grep "^$tag	" "$goals")" ]; then
       sed -i "s/^$tag	.\+/$tag	$goal/" "$goals"
     else
       echo "$tag	$goal" >> "$goals"
