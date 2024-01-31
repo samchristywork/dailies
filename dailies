@@ -132,7 +132,7 @@ case "$1" in
       elif [ -z "$last_done" ]; then
         echo "$daily	never done"
       fi
-    done
+    done | column -t -s $'\t'
     ;;
   "count")
     "$0" remaining | wc -l
