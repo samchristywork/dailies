@@ -97,6 +97,9 @@ case "$1" in
     echo "  edit - edit the list of tags"
     echo "  help - show this help message"
     ;;
+  "")
+    "$0" mark
+    ;;
   *)
     echo "Invalid option"
     ;;
