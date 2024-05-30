@@ -3,8 +3,8 @@
 tags="$HOME/.dailies.tags"
 log="$HOME/.dailies.log"
 
-touch "$tags"
-touch "$log"
+test -f "$tags" || touch "$tags"
+test -f "$log" || touch "$log"
 
 function remaining() {
   date="$(date +%Y-%m-%d)"
