@@ -2,24 +2,19 @@
 
 tags="$HOME/.dailies.tags"
 log="$HOME/.dailies.log"
-goals="$HOME/.dailies.goals"
 
-if [ ! -f "$tags" ]; then
-  touch "$tags"
-fi
+touch "$tags"
+touch "$log"
 
-if [ ! -f "$log" ]; then
-  touch "$log"
-fi
-
-if [ ! -f "$goals" ]; then
-  touch "$goals"
-fi
-
-if [ $# -eq 0 ]; then
-  "$0" mark
-  exit 0
-fi
+function remaining() {
+  date="$(date +%Y-%m-%d)"
+  sort "$tags" | while read -r line; do
+    isinlog="$(grep "$date	.\+	$line" "$log")"
+    if [ -z "$isinlog" ]; then
+      echo "$line"
+    fi
+  done
+}
 
 case "$1" in
   "add")
@@ -28,10 +23,16 @@ case "$1" in
       exit 1
     fi
 
+    num_tags="$(grep -c "" "$tags")"
+    if [ "$num_tags" -gt 20 ]; then
+      echo "Too many tags"
+      exit 1
+    fi
+
     echo "$2" >> "$tags"
     ;;
   "interactive")
-    "$0" remaining > /tmp/remaining.txt
+    remaining > /tmp/remaining.txt
 
     echo "(w)ill do, (s)kipped, (d)one, (q)uit"
 
@@ -60,7 +61,7 @@ case "$1" in
     done 3< "/tmp/remaining.txt"
     ;;
   "mark")
-    choice="$("$0" remaining | fzf)"
+    choice="$(remaining | sort -r | fzf)"
     status="$2"
 
     if [ -z "$choice" ]; then
@@ -76,160 +77,15 @@ case "$1" in
 
     date="$(date +%Y-%m-%d)"
     printf "%s\n" "$date	$status	$choice" >> "$log"
-    "$0" today
     ;;
-  "goal")
-    if [ $# -ne 3 ]; then
-      echo "Usage: dailies goal <tag> <goal>"
-      exit 1
-    fi
-
-    tag="$2"
-    goal="$3"
-
-    if [ -z "$tag" ]; then
-      echo "Invalid tag"
-      exit 1
-    fi
-
-    if [ -z "$goal" ]; then
-      echo "Invalid goal"
-      exit 1
-    fi
-
-    if [ -n "$(grep "^$tag	" "$goals")" ]; then
-      sed -i "s/^$tag	.\+/$tag	$goal/" "$goals"
-    else
-      echo "$tag	$goal" >> "$goals"
-    fi
-    ;;
-  "today")
+  "left")
+    num_tags="$(grep -c "" "$tags")"
     date="$(date +%Y-%m-%d)"
-    grep "$date" "$log" | column -t -s $'\t'
-    ;;
-  "remaining")
-    date="$(date +%Y-%m-%d)"
-    sort "$tags" | while read -r line; do
-      isinlog="$(grep "$date	.\+	$line" "$log")"
-      if [ -z "$isinlog" ]; then
-        echo "$line"
-      fi
-    done
-    ;;
-  "behind")
-    sort "$goals" | while read -r line; do
-      daily="$(echo "$line" | cut -f1)"
-      days="$(echo "$line" | cut -f2)"
-
-      last_done="$(grep "done	$daily" "$log" | tail -n 1 | cut -f1)"
-      last_done_epoch="$(date -d "$last_done" +%s)"
-      current_epoch="$(date +%s)"
-      seconds_ago="$((current_epoch - last_done_epoch))"
-      days_ago="$((seconds_ago / 86400))"
-
-      if [ "$days_ago" -ge "$days" ]; then
-        echo "$daily	behind $((days_ago - days)) days"
-      elif [ -z "$last_done" ]; then
-        echo "$daily	never done"
-      fi
-    done | column -t -s $'\t'
-    ;;
-  "count")
-    "$0" remaining | wc -l
-    ;;
-  "summary")
-    firstLine="$(head -n 1 "$log")"
-    startDate="$(echo "$firstLine" | cut -f1)"
-    startEpoch="$(date -d "$startDate" +%s)"
-    currentEpoch="$(date +%s)"
-
-    awk '
-    END {
-      for (epoch = '"$startEpoch"'; epoch <= '"$currentEpoch"'; epoch += 86400) {
-        dayOfMonth = strftime("%d", epoch)
-        lastDigit = substr(dayOfMonth, length(dayOfMonth), 1)
-        printf "%s", lastDigit
-      }
-      printf "\n"
-    }' < /dev/null
-
-    awk -F'\t' '
-      {
-        date = $1
-        epoch = mktime(gensub(/-/, " ", "g", date) " 00 00 00")
-        status = $2
-        tag = $3
-
-        data[epoch][tag] = status
-        tags[tag] = 1
-      }
-      END {
-        green = "\033[32m"
-        yellow = "\033[33m"
-        red = "\033[31m"
-        reset = "\033[0m"
-
-        for (tag in tags) {
-          sortedTags[tag] = 1
-        }
-        asorti(sortedTags)
-        for (i in sortedTags) {
-          tag = sortedTags[i]
-          daysSinceFailed = 0
-          for (epoch = '"$startEpoch"'; epoch <= '"$currentEpoch"'; epoch += 86400) {
-            if (data[epoch][tag] == "done") {
-              printf "%s%s%s", green, "✓", reset
-              daysSinceFailed = 0
-            } else if (data[epoch][tag] == "skipped") {
-              printf "%s%s%s", red, "✗", reset
-              daysSinceFailed += 1
-            } else {
-              printf "%s%s%s", yellow, "—", reset
-              daysSinceFailed += 1
-            }
-          }
-          printf "\t"
-          printf "%s", daysSinceFailed
-          printf "\t"
-          printf "%s", tag
-          printf "\n"
-        }
-      }' "$log" | while read -r line; do
-        marks="$(echo "$line" | cut -f1)"
-        daysSinceFailed="$(echo "$line" | cut -f2)"
-        tag="$(echo "$line" | cut -f3)"
-        grep -q "^$tag	" "$goals" && \
-          goal="$(grep "^$tag	" "$goals" | cut -f2)" || \
-          goal=""
-
-        green="\033[32m"
-        red="\033[31m"
-        reset="\033[0m"
-        if [ -z "$goal" ]; then
-          printf "%s\t%s\t%s\n" "$marks" "$goal" "$tag"
-        elif [ "$daysSinceFailed" -lt "$goal" ]; then
-          printf "%s\t${green}%s${reset}\t%s\n" "$marks" "$goal" "$tag"
-        else
-          printf "%s\t${red}%s${reset}\t%s\n" "$marks" "$goal" "$tag"
-        fi
-
-      done | column -t -s $'\t'
-
-    awk '
-    END {
-      for (epoch = '"$startEpoch"'; epoch <= '"$currentEpoch"'; epoch += 86400) {
-        dayOfMonth = strftime("%d", epoch)
-        lastDigit = substr(dayOfMonth, length(dayOfMonth), 1)
-        printf "%s", lastDigit
-      }
-      printf "\n"
-    }' < /dev/null
-    ;;
-  "show")
-    column -t -s $'\t' "$log"
+    num_done="$(grep -c "^$date	" "$log")"
+    echo "$((num_tags - num_done))"
     ;;
   "edit")
-    $EDITOR "$tags" "$log" "$goals"
+    $EDITOR "$tags" "$log"
     ;;
   "help")
     echo "Usage: dailies <command>"
@@ -237,13 +93,7 @@ case "$1" in
     echo "  add <tag> - add a tag to the list of dailies"
     echo "  interactive - mark dailies interactively"
     echo "  mark <status> - mark a daily with a status"
-    echo "  goal <tag> <goal> - set a goal for a daily"
-    echo "  today - show today's dailies"
-    echo "  remaining - show remaining dailies"
-    echo "  behind - show dailies that are behind"
-    echo "  count - show the number of remaining dailies"
-    echo "  summary - show a summary of dailies"
-    echo "  show - show the log"
+    echo "  left - count how many dailies are left"
     echo "  edit - edit the list of tags"
     echo "  help - show this help message"
     ;;
