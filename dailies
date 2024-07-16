@@ -6,6 +6,20 @@ log="$HOME/.dailies.log"
 test -f "$tags" || touch "$tags"
 test -f "$log" || touch "$log"
 
+if ! command -v fzf &> /dev/null; then
+  echo "fzf is required to run this script"
+  exit 1
+fi
+
+if [ -z "$EDITOR" ]; then
+  EDITOR="vim"
+
+  if ! command -v vim &> /dev/null; then
+    echo "Set the EDITOR environment variable to your preferred text editor"
+    exit 1
+  fi
+fi
+
 function remaining() {
   date="$(date +%Y-%m-%d)"
   sort "$tags" | while read -r line; do
