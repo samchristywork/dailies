@@ -11,6 +11,8 @@ if ! command -v fzf &> /dev/null; then
   exit 1
 fi
 
+dateFormat="%Y-%m-%d"
+
 if [ -z "$EDITOR" ]; then
   EDITOR="vim"
 
@@ -21,7 +23,7 @@ if [ -z "$EDITOR" ]; then
 fi
 
 function remaining() {
-  date="$(date +%Y-%m-%d)"
+  date="$(date +$dateFormat)"
   sort "$tags" | while read -r line; do
     isinlog="$(grep "$date	.\+	$line" "$log")"
     if [ -z "$isinlog" ]; then
@@ -70,7 +72,7 @@ case "$1" in
         continue
       fi
 
-      date="$(date +%Y-%m-%d)"
+      date="$(date +$dateFormat)"
       printf "%s\n" "$date	$status	$line" >> "$log"
     done 3< "/tmp/remaining.txt"
     ;;
@@ -89,12 +91,12 @@ case "$1" in
       fi
     fi
 
-    date="$(date +%Y-%m-%d)"
+    date="$(date +$dateFormat)"
     printf "%s\n" "$date	$status	$choice" >> "$log"
     ;;
   "left")
     num_tags="$(grep -c "" "$tags")"
-    date="$(date +%Y-%m-%d)"
+    date="$(date +$dateFormat)"
     num_done="$(grep -c "^$date	" "$log")"
     echo "$((num_tags - num_done))"
     ;;
