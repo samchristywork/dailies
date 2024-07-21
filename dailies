@@ -39,6 +39,11 @@ case "$1" in
       exit 1
     fi
 
+    if grep -q "^$2$" "$tags"; then
+      echo "Tag already exists"
+      exit 0
+    fi
+
     num_tags="$(grep -c "" "$tags")"
     if [ "$num_tags" -gt 20 ]; then
       echo "Too many tags"
