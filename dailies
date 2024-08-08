@@ -53,7 +53,8 @@ case "$1" in
     echo "$2" >> "$tags"
     ;;
   "interactive")
-    remaining > /tmp/remaining.txt
+    remainingFile=$(mktemp)
+    remaining > "$remainingFile"
 
     echo "(w)ill do, (s)kipped, (d)one, (q)uit"
 
@@ -79,7 +80,7 @@ case "$1" in
 
       date="$(date +$dateFormat)"
       printf "%s\n" "$date	$status	$line" >> "$log"
-    done 3< "/tmp/remaining.txt"
+    done 3< "$remainingFile"
     ;;
   "mark")
     choice="$(remaining | sort -r | fzf)"
