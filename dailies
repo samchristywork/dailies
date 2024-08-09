@@ -46,11 +46,12 @@ case "$1" in
 
     num_tags="$(grep -c "" "$tags")"
     if [ "$num_tags" -gt 20 ]; then
-      echo "Too many tags"
-      exit 1
+      echo "Warning: Too many tags"
     fi
 
     echo "$2" >> "$tags"
+
+    sort -u -o "$tags" "$tags"
     ;;
   "interactive")
     remainingFile=$(mktemp)
