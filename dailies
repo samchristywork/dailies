@@ -107,6 +107,11 @@ case "$1" in
     num_done="$(grep -c "^$date	" "$log")"
     echo "$((num_tags - num_done))"
     ;;
+  "done")
+    date="$(date +$dateFormat)"
+    num_done="$(grep -c "^$date	" "$log")"
+    echo "$num_done"
+    ;;
   "edit")
     $EDITOR "$tags" "$log"
     ;;
@@ -117,6 +122,7 @@ case "$1" in
     echo "  interactive - mark dailies interactively"
     echo "  mark <status> - mark a daily with a status"
     echo "  left - count how many dailies are left"
+    echo "  done - count how many dailies are done"
     echo "  edit - edit the list of tags"
     echo "  help - show this help message"
     ;;
